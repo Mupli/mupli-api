@@ -1,5 +1,4 @@
-import { FileDetails, FileLoader } from "mupli-core";
-import path from "path";
+import { CoreUtils, FileDetails, FileLoader } from "mupli-core";
 
 export class ApiModule {
     moduleName;
@@ -11,14 +10,12 @@ export class ApiModule {
         this.moduleName = config.moduleName ?? "api";
     }
 
-    async init(appName) {
+    async init(appName, config) {
         const me = this;
         const routes = this._routes;
         routes[appName] = {};
 
-        const path = "./app/" + appName + "/" + this.moduleName;
-
-        const files = FileLoader.getFiles(path) //
+        let files = CoreUtils.getFiles(appName, config) //
             .filter((x) => x.is("js") || x.is("json"));
 
         for (const key in files) {
@@ -33,7 +30,8 @@ export class ApiModule {
 
                     Object.keys(actions).forEach((key) => {
                         let action = actions[key];
-                        routes[appName][this._routerPrefix + fd.route + key] = action;
+                        routes[appName][this._routerPrefix + fd.route + key] =
+                            action;
                     });
                 } else if (fd.is("json")) {
                     const jsonString = FileLoader.load(fd);
