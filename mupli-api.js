@@ -72,7 +72,7 @@ export class ApiModule {
         return actions;
     }
 
-    routes(appName) {
+    routes({appName}) {
         return this._routes[appName];
     }
 }
