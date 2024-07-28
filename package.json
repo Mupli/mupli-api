@@ -1,7 +1,7 @@
 {
     "name": "mupli-api",
     "version": "1.0.1",
-    "description": "",
+    "description": "Api module for Mupli Core.",
     "main": "mupli-api.js",
     "type": "module",
     "repository": {

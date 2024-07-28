@@ -9,8 +9,7 @@ Module to setup Rest api for multiple projects without boilerplate code. add
 - path prefix: /api
 - supported files : js, json 
 
-## 
-setup project 
+##  project project 
 
 /config/apps.json 
 
@@ -48,50 +47,75 @@ Mupli.init()
 
 import {isMethod} from "mupli-middlewares"
 
+// -- /api/someFile
 export function init(ctx) {
     return "init OK"
 
 }
-
+// -- /api/someFile/super 
 export async function super(ctx) {
     return ctx.res.status(201).json({
         message: "super accepted"
     })
 }
-
-export const test = [
+// -- /api/someFile/doSomething 
+export const doSomething = [
     //... middlewares if needed
-    
+    isAuthenticated(),
     isMethod("post"),
-    // hasRole("POSTMAN"),
-    // hasHeader("header"),
-    // isResourceOwner()
-    // isFileUpload()
-    
-    //OR custom middleware:
-    async (ctx) => {
-        //my custom code ..
-        console.log("custom")
-    },
-    
-    async (ctx) => {
+    hasRole("POSTMAN"),
+    hasHeader("header"),
+    isResourceOwner(),
+    // isFileUpload()    
 
-        if (!ctx.req.is("POST")) {
-            //or manual check
-            return ctx.res.status(405); 
-        }
-
-        return {
-            message: "post test"
-        } // 200 OK
-    }
+   controllerAction
 ]
+
+const controllerAction =  async (ctx) => {
+    //..your logic here 
+
+    return {
+        message: "post test"
+    } // 200 OK
+}
 
 ```
 
 Got to:
 * GET localhost:3000/api/someFile
 * GET localhost:3000/api/someFile/super
-* POST localhost:3000/api/someFile/test  
+* POST localhost:3000/api/someFile/doSomething  
 
 
+
+
+## other example 
+Example with mupli-middleware and executeOn to handle POST,GET,PATCH,DELETE methods for one uri.
+
+file: project/api/users.js
+
+```javascript
+
+// path - /api/users/test
+export const test = [
+    isAuthenticated(),
+    async (ctx) => ctx.res.ok().text("OK"),
+]
+
+// path - /api/users
+export const init = [
+    isAuthenticated(),
+    executeOn(isMethod("get"), findUsers),
+    executeOn(isMethod("post"), [ validateAjv(User.SCHEMA), createUser ]),
+    executeOn(isMethod("put"),  [ validateAjv(User.SCHEMA), updateUser ]),
+    executeOn(isMethod("patch"), partialUserUpdate),
+    (ctx) => ctx.res.notFound(),
+];
+```
+
+Note: It is encuraged to create own middlewares for your needs for example: 
+- isRequest(method, mandatoryHeaders... )
+- loadProductById...
+- isOauth 
+- hasProduct
+- isJsonFormatPatch..

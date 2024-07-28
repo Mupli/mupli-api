@@ -13,7 +13,7 @@ export class ApiModule {
     async init(appName, config) {
         const me = this;
         const routes = this._routes;
-        routes[appName] = {};
+        routes[appName] ??= {};
 
         let files = CoreUtils.getFiles(appName, config) //
             .filter((x) => x.is("js") || x.is("json"));
@@ -72,7 +72,7 @@ export class ApiModule {
         return actions;
     }
 
-    routes({appName}) {
+    routes({ appName }) {
         return this._routes[appName];
     }
 }
