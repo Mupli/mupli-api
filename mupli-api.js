@@ -1,4 +1,4 @@
-import { CoreUtils, FileDetails, FileLoader } from "mupli-core";
+import { CoreUtils, FileDetails, FileLoader, Objects } from "mupli-core";
 
 export class ApiModule {
     moduleName;
@@ -24,19 +24,29 @@ export class ApiModule {
              */
             const fd = files[key];
 
+            const route = fd.route.endsWith("/index") ? fd.route.slice(0, fd.route.indexOf("/index")) : fd.route;
+
             if (fd.moduleFilePath.indexOf("/_") < 0) {
                 if (fd.is("js")) {
                     let actions = await this._getActions(fd);
 
                     Object.keys(actions).forEach((key) => {
                         let action = actions[key];
-                        routes[appName][this._routerPrefix + fd.route + key] =
-                            action;
+                        if (!Objects.isEmpty(action)) {
+                            const finalRoute = this._routerPrefix + route + key;
+
+                            if (!routes[appName][finalRoute]) {
+
+                                // throw new Error("Overriden path " + finalRoute + "" + JSON.stringify({ action, config }));
+                                routes[appName][finalRoute] = action;
+                            }
+
+                        }
                     });
                 } else if (fd.is("json")) {
                     const jsonString = FileLoader.load(fd);
 
-                    routes[appName][this._routerPrefix + fd.route] = async (
+                    routes[appName][this._routerPrefix + route] = async (
                         ctx
                     ) => {
                         return jsonString;
@@ -50,20 +60,21 @@ export class ApiModule {
         const module = await FileLoader.asObject(actionFd);
 
         const methodNames = Object.keys(module).filter(
+            // ignore starting with _
             (methodName) => !methodName.startsWith("_")
         );
 
         if (methodNames.length <= 0)
             throw new Error(
                 "No '" +
-                    actionFd.name +
-                    "' or 'init' method in file: " +
-                    actionFd.filePath
+                actionFd.name +
+                "' or 'init' method in file: " +
+                actionFd.filePath
             );
 
         const actions = {};
         methodNames.forEach((m) => {
-            if (m == "init") {
+            if (m == "init" || m == actionFd.name) {
                 actions[""] = module[m];
             } else {
                 actions["/" + m] = module[m];
